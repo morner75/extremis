@@ -1,15 +1,4 @@
-#' Bayeian soomthing methods for binary responses
-#'
-#' @param x a numeric vector / covariate
-#' @param y a numeric vector / response
-#' @param no.iter a scalar / number of iteraions
-#' @param burn.in a scalar / burn.in period
-#' @param init a list of a scalar and a numeric vector / list of sigma2 and beta
-#' @param Bs a matrix / evalutions of x from B-splines
-#' @param knot a scalar / number of knots
-#' @param d a scalar / order of difference for penalty
-#' @return a list of MCMC sample from Gibbs sampling, posterior of trjectories and coefficients beta, sigma2 and tau2
-#' @export
+# Bayeian soomthing methods for binary responses
 bpsBern <- function(y, x=NULL, no.iter=1500, burn.in=500, init, Bs, knot=20, d, sampler=c("Gibbs","IWLS")) {
   type <- match.arg(sampler)
   if(missing(d)) d=1
