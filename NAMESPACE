@@ -1,0 +1,48 @@
+## useDynLib(extremis, .registration = TRUE) 
+useDynLib(extremis)
+
+## import(DPpackage)
+import(emplik)
+import(graphics)
+import(stats)
+## import(nnet)
+## import(evd)
+
+export(angcdf, angcdf.default,
+       angdensity, angdensity.default,
+       angscdf, angscdf.default,
+       ## bbc, bbc.default,
+       cdf, cdf.default,
+       cdensity, cdensity.default,
+       ## cbernstein, cbernstein.default,
+       ## etc, etc.default,
+       ## etcdf, etcdf.default,
+       cmodes, cmodes.default,
+       khetmeans, khetmeans.default,
+       kgvar, kgvar.default,
+       ## multihill, multihill.default,
+       plotFrechet, plotFrechet.default)
+
+S3method(angcdf, default)
+S3method(plot, angcdf)
+S3method(angdensity, default)
+S3method(plot, angdensity)
+S3method(angscdf, default)
+S3method(plot, angscdf)
+## S3method(bbc, default)
+## S3method(plot, bbc)
+S3method(cdf, default)
+S3method(plot, cdf)
+S3method(cdensity, default)
+S3method(plot, cdensity)
+## S3method(etcdf, default)
+## S3method(plot, etcdf)
+## S3method(etc, default)
+## S3method(plot, etc)
+S3method(plotFrechet, default)
+S3method(cmodes, default)
+S3method(plot, cmodes)
+S3method(khetmeans, default)
+S3method(plot, khetmeans)
+S3method(kgvar, default)
+S3method(plot, kgvar)
