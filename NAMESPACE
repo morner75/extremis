@@ -5,6 +5,9 @@ useDynLib(extremis)
 import(emplik)
 import(graphics)
 import(stats)
+import(splines2)
+import(ggplot2)
+import(mvtnorm)
 ## import(nnet)
 ## import(evd)
 
@@ -21,7 +24,8 @@ export(angcdf, angcdf.default,
        khetmeans, khetmeans.default,
        kgvar, kgvar.default,
        ## multihill, multihill.default,
-       plotFrechet, plotFrechet.default)
+       plotFrechet, plotFrechet.default,
+       chit, chit.default)
 
 S3method(angcdf, default)
 S3method(plot, angcdf)
@@ -46,3 +50,5 @@ S3method(khetmeans, default)
 S3method(plot, khetmeans)
 S3method(kgvar, default)
 S3method(plot, kgvar)
+S3method(chit,default)
+S3method(plot,chit)
