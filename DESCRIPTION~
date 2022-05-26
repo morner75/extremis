@@ -1,0 +1,27 @@
+Package: extremis
+Version: 1.21
+Date: 2022-04-09
+Title: Statistics of Extremes
+Description: Conducts inference for statistical models of extreme values (de Carvalho et al (2012), <doi:10.1080/03610926.2012.709905>; de Carvalho and Davison (2014), <doi:10.1080/01621459.2013.872651>.
+Authors@R: c(person("Miguel", "de Carvalho", role = c("aut", "cre"),
+	   	  email = "miguel.decarvalho@ed.ac.uk"), 
+		  person("Alina", "Kumukova", role = c("ctb"), email = "A.Kumukova@sms.ed.ac.uk"), 
+                  person("Rodrigo", "Rubio", role = c("ctb"), 
+	   	  email = "rerubio@mat.uc.cl"), person("Vianey", "Palacios", role = c("ctb"),
+	   	  email = "s1875879@ed.ac.uk"), person("Alejandro", "Jara", role = c("ctb"),
+	   	  email = "atjara@uc.cl"), person("Tim", "Hanson", role = c("ctb"),
+	   	  email = "hansont@stat.sc.edu"))
+Author: Miguel de Carvalho [aut, cre],
+  Rodrigo Rubio [aut], Vianey Palacios [aut], Alejandro Jara [ctb], Tim Hanson [ctb]
+Depends: R (>= 3.0.1)
+Maintainer: Miguel de Carvalho <miguel.decarvalho@ed.ac.uk>
+License: GPL (>= 3)
+Repository: CRAN 
+Imports: doParallel, emplik, evd, foreach, ggplot2, lattice, MASS, methods, parallel, splines, Sim.DiffProc, qqboxplot
+NeedsCompilation: yes
+LazyData: true
+Packaged: 2021-07-28 10:24:03 UTC; s1875879
+
+
+
+

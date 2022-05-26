@@ -1,0 +1,87 @@
+\encoding{UTF-8}
+\name{regmani}
+\alias{regmani}
+%% \alias{regmani.default}
+\title{Parametric Regression Manifolds}
+\description{
+  This function computes the regression manifold for nine parametric
+  bivariate extreme value models.   
+}
+\usage{
+regmani(model, dep, asy = c(1, 1), alpha, beta, q = NULL, pred = NULL)
+}
+\arguments{
+  \item{model}{a string indicating the model. Must
+    be either "independence", "dependence",
+    \code{"log"} (the default), \code{"alog"}, \code{"hr"},
+    \code{"neglog"}, \code{"aneglog"}, \code{"bilog"},
+    \code{"negbilog"}, \code{"ct"} or \code{"amix"} (or any unique
+    partial match), for the logistic, asymmetric logistic,
+    Husler-Reiss, negative logistic, asymmetric negative logistic,
+    bilogistic, negative bilogistic, Coles-Tawn and asymmetric
+    mixed models respectively. Parametrizations are the same as in the
+    \code{evd} package.}
+  \item{dep}{dependence parameter for the logistic, asymmetric
+    logistic, Husler-Reiss, negative logistic and asymmetric
+    negative logistic models.}
+  \item{asy}{a vector of length two, containing the two asymmetry
+    parameters for the asymmetric logistic and asymmetric negative
+    logistic models.}
+  \item{alpha, beta}{alpha and beta parameters for the bilogistic,
+    negative bilogistic, Coles-Tawn and asymmetric mixed models.}
+  \item{q}{value on the unit interval containing quantiles over
+    which the cross section of the angular manifold will be evaluated.}
+  \item{pred}{positive value containing values of the covariate over 
+    which the cross section of the angular manifold will be evaluated.}  
+}
+\value{
+  An object of class \code{regmani} with a: 
+  \item{rm}{data frame with regression manifold coordinates.}
+  \item{target}{string that identifies if the full regression
+    manifold is evaluated (\code{full}) or if only a cross section
+    is obtained (\code{fixed_x} and \code{fixed_q}).}
+  The \code{plot} method depicts the true angular manifold (\code{target =
+    full}). Cross sections of the angular manifold
+  are plotted when \code{target = fixed_q} or \code{target = fixed_x};
+  for example, the conditional median is depicted if  
+  \code{q = 0.5} when calling \code{regmani}, 
+  and the angular manifold conditional on a specific value of the
+  covariate is plotted using \code{pred = a} for a positive \code{a}.  
+}
+\details{
+  Regression manifolds for multivariate extreme value distributions were
+  introduced by de Carvalho et al (2022).
+}
+\references{
+  de Carvalho, M., dos Reis, G. and Kumukova, A. (2022) Regression-type analysis 
+  for multivariate extreme values. Submitted.
+}
+\examples{
+## Complete independence versus perfect dependence
+pi <- plot(regmani("independence"), main = "Complete independence")
+pd <- plot(regmani("dependence"), main = "Perfect dependence")
+print(pi, split = c(1, 1, 2, 1), more = TRUE)
+print(pd, split = c(2, 1, 2, 1), more = FALSE)
+
+## Logistic model versus Coles-Tawn model
+plog <- plot(regmani("log", dep = 0.9), main = "Logistic",
+             zlim = c(0, 300))
+pct <- plot(regmani("ct", alpha = 0.5, beta = 100), main = "Coles-Tawn",
+            zlim = c(0, 300))
+print(plog, split = c(1, 1, 2, 1), more = TRUE)
+print(pct, split = c(2, 1, 2, 1), more = FALSE)
+
+## Same as above but now for cross sections
+q <- c(0.1, 0.5, 0.9)
+plot(regmani("independence", q = q))
+plot(regmani("dependence", q = q))
+plot(regmani("log", dep = 0.9, q = q))
+plot(regmani("ct", alpha = 0.5, beta = 100, q = q))
+
+x <- c(1, 10, 20)
+plot(regmani("independence", pred = x))
+plot(regmani("dependence", pred = x))
+plot(regmani("log", dep = 0.9, pred = x))
+plot(regmani("ct", alpha = 0.5, beta = 100, pred = x))
+
+}

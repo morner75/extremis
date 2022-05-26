@@ -1,0 +1,82 @@
+## useDynLib(extremis, .registration = TRUE)
+useDynLib(extremis)
+
+## import(alabama)
+import(doParallel)
+import(emplik)
+import(foreach)
+import(graphics)
+import(ggplot2)
+import(lattice)
+import(MASS)
+import(mvtnorm)
+import(parallel)
+import(Rcpp)
+import(RcppArmadillo)
+import(stats)
+import(truncnorm)
+import(qqboxplot)
+## import(nnet)
+importFrom("fda.usc", "fdata")
+importFrom("evd", "rbvevd")
+importFrom("evd", "hbvevd")
+importFrom("Sim.DiffProc", "BM")
+importFrom("splines", "bs")
+importFrom("grDevices", "gray")
+importFrom("methods","is")
+
+export(angcdf.EL, angcdf.EL.default,       
+       bev.BP, bev.BP.default,
+       bev.kernel, bev.kernel.default,
+       bevfd.kernel, bevfd.kernel.default,       
+       chit, chit.default,
+       chibart, chibart.default, 
+       scedasis.cdf, scedasis.cdf.default,
+       scedasis.kernel, scedasis.kernel.default,
+       scedasis.PT, scedasis.PT,
+       ## cbernstein, cbernstein.default,
+       ## etc, etc.default,
+       ## etcdf, etcdf.default,
+       cmodes, cmodes.default,
+       khetmeans, khetmeans.default,
+       kgvar, kgvar.default,
+       ## multihill, multihill.default,
+       plotFrechet, plotFrechet.default,
+       regmani.BP, regmani.BP.default,
+       regmani, regmani.default
+)
+
+S3method(bev.BP, default)
+S3method(plot, bev.BP)
+S3method(bev.kernel, default)
+S3method(plot, bev.kernel)
+S3method(bevfd.kernel, default)
+S3method(plot, bevfd.kernel)
+S3method(angcdf.EL, default)
+S3method(plot, angcdf.EL)
+S3method(scedasis.cdf, default)
+S3method(plot, scedasis.cdf)
+S3method(scedasis.kernel, default)
+S3method(plot, scedasis.kernel)
+S3method(scedasis.PT, default)
+S3method(plot, scedasis.PT)
+## S3method(etcdf, default)
+## S3method(plot, etcdf)
+## S3method(etc, default)
+## S3method(plot, etc)
+S3method(plotFrechet, default)
+S3method(cmodes, default)
+S3method(plot, cmodes)
+S3method(khetmeans, default)
+S3method(plot, khetmeans)
+S3method(kgvar, default)
+S3method(plot, kgvar)
+S3method(regmani, default)
+S3method(plot, regmani)
+S3method(regmani.BP, default)
+S3method(plot, regmani.BP)
+S3method(summary, regmani.BP)
+S3method(chit, default)
+S3method(plot, chit)
+S3method(chibart, default)
+S3method(plot, chibart)
