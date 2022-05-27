@@ -74,13 +74,13 @@ plot.workhorse <- function(grid, traj, trajhat, square, bands = TRUE,
 }
 
 ## COSMETIC ASPECTS:
-## Create colors and set transparancy to every color 
+## Create colors and set transparancy to every color
 transparent <- function(orig = "red", trans.val = 1, maxc = 255) {
-    ## adapted from the yarrr package 
+    ## adapted from the yarrr package
     n.cols <- length(orig)
-    orig <- col2rgb(orig)            
+    orig <- col2rgb(orig)
     final <- rep(NA, n.cols)
-    for(i in 1:n.cols) 
+    for(i in 1:n.cols)
         final[i] <- rgb(orig[1, i], orig[2, i], orig[3, i],
                         alpha = (1 - trans.val) * 255, maxColorValue = maxc)
     return(final)
