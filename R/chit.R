@@ -208,6 +208,22 @@ chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
         cat(i,"\n")            
     }    
   }
+  
+  beta.post <-  output[(burn + 1):T, 1:ncol(Bs)]
+  t2.post <- output[(burn + 1):T, ncol(Bs) + 1]
+  if (link == 'probit')
+    traj <- pnorm(beta.post %*% t(Bs))
+  if (link == 'logit')
+    traj <- 1 / (1 + exp(-beta.post %*% t(Bs)))
+  if (link == 'cloglog')
+    traj <- 1 - exp(-exp(beta.post %*% t(Bs)))
+  cat("DONE\n")
+  trajhat <- colMeans(traj)
+  outputs <- list(IE = IE, tex = time, traj = traj, trajhat = trajhat, 
+                  beta = beta.post, t2 = t2.post,
+                  afun = approxfun(time, trajhat))
+  class(outputs) <- "chit"
+  return(outputs)
 }
 
 
