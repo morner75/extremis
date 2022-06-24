@@ -19,14 +19,14 @@
 
 chit <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
                  T = 10000, burn = 5000, link = 'probit', knot = 20, dif = 2,
-                 raw = TRUE)
-    UseMethod("chit")
+                 raw = TRUE, silent = FALSE)
+  UseMethod("chit")
 
 
 
 chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
                          T = 10000, burn = 5000, link = 'probit', knot = 20,
-                         dif = 2, raw = TRUE) {
+                         dif = 2, raw = TRUE, silent = FALSE) {
   
   ## Basic input validation
   if (tau >= 1)
@@ -64,7 +64,7 @@ chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
     }
     return(t(Dd) %*% Dd)
   }    
-  ## B-spline basis matrix and evalute penalty matrix    
+  ## B-spline basis matrix and evaluate penalty matrix    
   Bs <- bs(time, knots = seq(min(time), max(time), length = knot),
            degree = 3, intercept = TRUE)   
   K <- Kdmat(ncol(Bs), dif)
@@ -75,113 +75,100 @@ chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
   if (link == "probit") {
     t2 <- 1
     beta <- rnorm(nbs)    
-    Sigmaf <- solve((t(Bs) %*% Bs) + K / t2, tol = 2.220446e-100)        
-    cat("MCMC iterations:\n")
-    cat("================\n")            
+    Sigmaf <- function(t2) solve((t(Bs) %*% Bs) + K / t2, tol = 2.220446e-100)        
+    if(!silent){
+      cat("MCMC iterations:\n")
+      cat("================\n") 
+    }       
     for (i in 1:T) {
       ## update latent indicators (li)
       a <- ifelse(IE == 0, -Inf, 0)
       b <- ifelse(IE == 1, Inf, 0)
       li <- truncnorm::rtruncnorm(length(IE), a, b, Bs %*% beta, sd = 1)        
       ## update beta
-      
-      beta <- as.vector(rmvnorm(1, mean = Sigmaf %*% (t(Bs) %*% li),sigma = Sigmaf))
+      beta <- as.vector(rmvnorm(1, mean = Sigmaf(t2) %*% (t(Bs) %*% li),sigma = Sigmaf(t2)))
+
       ## update t2
       t2 <- 1 / rgamma(1, prior$a + (length(beta) - dif) / 2,
                        prior$b + t(beta) %*% (K %*% beta) / 2)
       
       output[i, 1:nbs] <- beta
       output[i, nbs+1] <- t2
-      if (i%%(T %/% 5) == 0)
+      if (!silent & i%%(T %/% 5) == 0)
         cat(i,"\n")
     }
   }
   ## PROBIT AND CLOGOG LINKS: SET INITIAL VALUES AND CALL METROPOLIS-HASTINGS
   if (link == "logit" | link == "cloglog") {
+    
+    linkf <- make.link(link=link)
+    
+    ## auxiliary functions for weight matrix and working response
+    lik <- function(Bsb)
+      sum(dbinom(IE, 1, prob = linkf$linkinv(Bsb),log = TRUE))
+    W <- function(Bsb) 
+      diag(as.vector(linkf$mu.eta(Bsb)/linkf$linkinv(Bsb)*(1-linkf$linkinv(Bsb))))
+    ytilde <- function(Bsb)  Bsb+ (IE - linkf$linkinv(Bsb))/linkf$mu.eta(Bsb)
+    
+    ## auxiliary functions for mean and covariance matrix
+    meanc <- function(co, w, Bsb)
+      as.vector(co %*% (t(Bs) %*% (w %*% ytilde(Bsb))))
+    covc <- function(w) 
+      solve(t(Bs) %*% w %*% Bs + K / t2, tol = 2.220446e-100)
+      
+    
     ## SET INITIAL VALUES
     ## initialize at the posterior mode using conjugate gradient
     beta <- rep(0, nbs)
-    t2 <- 100
     ran <- (length(beta) - dif)
-    if (link == "logit")
-      init <- function(x) {
-        beta <- x[1:nbs]
-        t2 <- x[nbs + 1]
-        sum(dbinom(IE, 1,
-                   prob = as.vector(1 / (1 + exp(-Bs %*% beta))),
-                   log = TRUE)) +
-          as.vector(-ran / 2 * log(t2) -
-                      t(beta) %*% K %*% beta / (2 * t2))
-      }
-    if (link == "cloglog")
-      init <- function(x) {
-        beta <- x[1:nbs]
-        t2 <- x[nbs + 1]
-        sum(dbinom(IE, 1,
-                   prob = as.vector(1 - exp(-exp(Bs %*% beta))),
-                   log = TRUE)) +
-          as.vector(-ran / 2 * log(t2) -
-                      t(beta) %*% K %*% beta / (2 * t2))
-      }            
+    init <- function(x) {
+      beta <- x[1:nbs]
+      Bsb <- Bs%*%beta
+      sum(dbinom(IE, 1,
+                 prob = linkf$linkinv(Bsb),
+                 log = TRUE))  +
+        as.vector(-ran / 2  -
+                    t(beta) %*% K %*% beta / 2)
+    }
+    init_derv <- function(x) {
+      beta <- x[1:nbs]
+      Bsb <- Bs%*%beta
+      t(Bs)%*%W(Bsb)%*%
+                 (IE-linkf$linkinv(Bsb))- K%*%beta/2
+    }
     cat("Initializing...\n")
-    x <- optim(c(beta, t2), init,
+    x <- optim(beta, init,init_derv,
                control = list(fnscale = -1000, reltol = 10^-20,
-                              maxit = 10^9), method = "CG")
+                              maxit = 10^9), method = "BFGS")
+    
     if (x$convergence == 0)
       cat("(converged)\n")
     beta <- x$par[1:nbs]
-    t2 <- x$par[nbs + 1]                
-    ## auxiliary functions for weight matrix and working response
-    if (link == "logit") {
-      W <- function(beta, Bsb) 
-        diag(as.vector(exp(Bsb) / (1 + exp(Bsb))^2))
-      ytilde <- function(beta, Bsb) 
-        as.vector(Bsb + (IE - 1 / (1 + exp(-Bsb))) * 
-                    (1 + exp(Bsb))^2 / exp(Bsb))
-      lik <- function(Bsb)
-        sum(dbinom(IE, 1, prob = as.vector(1 / (1 + exp(-Bsb))),
-                   log = TRUE))             
-    }
-    if (link == "cloglog") {
-      W <- function(beta, Bsb) 
-        diag(as.vector(exp(2 * Bsb - exp(Bsb)) / (1 - exp(-exp(Bsb)))))
-      ytilde <- function(beta, Bsb) 
-        as.vector(Bsb + (IE - 1 + exp(-exp(Bsb))) / 
-                    (exp(Bsb - exp(Bsb))))
-      lik <- function(Bsb)
-        sum(dbinom(IE, 1, prob = as.vector(1 - exp(-exp(Bsb))),
-                   log = TRUE))
-    }
-    ## auxiliary functions for mean and covariance matrix
-    meanc <- function(beta, co, w, Bsb)
-      as.vector(co %*% t(Bs) %*% w %*% ytilde(beta, Bsb))
-    covc <- function(beta, w) 
-      solve(t(Bs) %*% w %*% Bs + K / t2, tol = 2.220446e-100)
-    
+    t2 <- 1#exp(x$par[nbs + 1])                
+
+
     ## START METROPOLIS-HASTINGS
     cat("MCMC iterations:\n")
     cat("================\n")
     for (i in 1:T) {
       ## update beta
       Bsb <- Bs %*% beta
-      w <- W(beta, Bsb)
-      ## if (is.nan(det(t(Bs) %*% w %*% Bs + K / t2)) == FALSE) {
+      w <- W(Bsb)
       if (is.nan(det(t(Bs) %*% w %*% Bs + K / t2)) == FALSE &
           det(t(Bs) %*% w %*% Bs + K / t2) != 0) {            
-        cbetap <- covc(betap, w)
+        cbetap <- covc(w)
         ## if not numerically symmetric, convert it to symmetric
         if (base::isSymmetric(cbetap) == FALSE)
           cbetap[lower.tri(cbetap)] <- t(cbetap)[lower.tri(cbetap)] 
         
-        cbeta <- covc(beta, w)
-        mbeta <- meanc(beta, cbeta, w, Bsb)
+        cbeta <- covc(w)
+        mbeta <- meanc(cbeta, w, Bsb)
         
-        betap <- as.vector(mvtnorm::rmvnorm(1, mean = mbeta,
-                                            sigma = cbeta))
+        betap <- as.vector(mvtnorm::rmvnorm(1, mean = mbeta, sigma = cbeta))
         Bsbp <- Bs %*% betap
-        w <- W(betap, Bsbp)            
-        cbetap <- covc(betap, w)
-        mbetap <- meanc(betap, cbetap, w, Bsbp)
+        w <- W(Bsbp)            
+        cbetap <- covc(w)
+        mbetap <- meanc(cbetap, w, Bsbp)
         
         like1c <- lik(Bsb) 
         like1p <- lik(Bsbp)
@@ -193,7 +180,7 @@ chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
                                   log = TRUE)
         evalc <- mvtnorm::dmvnorm(beta, mean = mbetap, sigma = cbetap,
                                   log = TRUE)
-        alpha <- like1p + like2p + evalc - like1c - like2c - evalp
+        alpha <- like1p + like2p - evalp  - (like1c + like2c - evalc) 
         
         if (is.nan(alpha) == FALSE) 
           if (alpha > log(runif(1)))
@@ -217,7 +204,7 @@ chit.default <- function(XY, tau = 0.95, prior = list(a = 0.001, b = 0.001),
     traj <- 1 / (1 + exp(-beta.post %*% t(Bs)))
   if (link == 'cloglog')
     traj <- 1 - exp(-exp(beta.post %*% t(Bs)))
-  cat("DONE\n")
+  if(!silent) cat("DONE\n")
   trajhat <- colMeans(traj)
   outputs <- list(IE = IE, tex = time, traj = traj, trajhat = trajhat, 
                   beta = beta.post, t2 = t2.post,
